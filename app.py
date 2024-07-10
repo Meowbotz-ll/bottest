@@ -5,7 +5,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
-from webdriver_manager.chrome import ChromeDriverManager
 import time
 import random
 
@@ -34,8 +33,11 @@ def automate_task():
     chrome_options = Options()
     chrome_options.add_argument("--incognito")
 
-    # Initialize the WebDriver
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    # Path to your local ChromeDriver
+    chrome_driver_path = "./chromedriver.exe"
+
+    # Initialize the WebDriver with the local ChromeDriver
+    driver = webdriver.Chrome(service=Service(chrome_driver_path), options=chrome_options)
 
     try:
         # Open the website
