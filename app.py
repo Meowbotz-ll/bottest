@@ -39,7 +39,7 @@ def automate_task():
 
     try:
         # Open the website
-        driver.get("https://textbookshop.webflow.io/")  # Replace with the actual URL
+        driver.get("https://bottest-l0pcuhvmy-kienhongs-projects.vercel.app/")  # Replace with the actual URL
 
         # Wait for 3 seconds on the main page before clicking
         time.sleep(3)
@@ -74,7 +74,7 @@ def automate_task():
         driver.quit()
         print("Browser closed.")
 
-if _name_ == "__main__":
+if __name__ == "__main__":
     while True:
         automate_task()
         print("Restarting the task...")
