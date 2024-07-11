@@ -48,6 +48,7 @@ def automate_task():
     
     # Path to your local ChromeDriver
     chrome_driver_path = "./chromedriver.exe"
+    
 
     while not stop_flag.is_set():
         try:
@@ -55,7 +56,7 @@ def automate_task():
             driver = webdriver.Chrome(service=Service(chrome_driver_path), options=chrome_options)
 
             # Open the website
-            driver.get("https://hzythisismywebpage.vercel.app/")  # Replace with the actual URL
+            driver.get("https://myriowwebsite.vercel.app/")  # Replace with the actual URL
 
             # Wait for 3 seconds on the main page before clicking
             time.sleep(3)
@@ -115,7 +116,7 @@ def monitor_stop_flag():
             break
 
 if __name__ == "__main__":
-    number_of_threads = 25  # Set the number of threads you want to run
+    number_of_threads = 20  # Set the number of threads you want to run
 
     # Start the monitor thread
     stop_thread = threading.Thread(target=monitor_stop_flag)
