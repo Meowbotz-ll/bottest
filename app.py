@@ -8,8 +8,9 @@ import time
 import random
 import threading
 
-# Global counter
+# Global counter and stop flag
 task_counter = 0
+stop_flag = threading.Event()
 counter_lock = threading.Lock()
 
 def click_top_20_percent(driver):
@@ -25,7 +26,6 @@ def click_top_20_percent(driver):
         # Move to the specified location and click
         actions = ActionChains(driver)
         actions.move_by_offset(click_width, click_height).click().perform()
-        # print(f"Clicked on the position ({click_width}, {click_height}) within the top 20% of the page.")
         return True
 
     except Exception as e:
@@ -45,67 +45,82 @@ def automate_task():
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--window-size=200,300")  # Smaller window size
     chrome_options.add_argument("--log-level=3")
-
+    
     # Path to your local ChromeDriver
     chrome_driver_path = "./chromedriver.exe"
 
-    # Initialize the WebDriver with the local ChromeDriver
-    driver = webdriver.Chrome(service=Service(chrome_driver_path), options=chrome_options)
+    while not stop_flag.is_set():
+        try:
+            # Initialize the WebDriver with the local ChromeDriver
+            driver = webdriver.Chrome(service=Service(chrome_driver_path), options=chrome_options)
 
-    try:
-        # Open the website
-        driver.get("https://bottest-phi.vercel.app/")  # Replace with the actual URL
+            # Open the website
+            driver.get("https://hzythisismywebpage.vercel.app/")  # Replace with the actual URL
 
-        # Wait for 3 seconds on the main page before clicking
-        time.sleep(3)
+            # Wait for 3 seconds on the main page before clicking
+            time.sleep(3)
 
-        # Click the top 20% of the page
-        if click_top_20_percent(driver):
-            # Wait for a new window or tab to open
-            WebDriverWait(driver, 10).until(lambda d: len(d.window_handles) > 1)
-            # print("New window or tab detected.")
+            # Click the top 20% of the page
+            if click_top_20_percent(driver):
+                # Wait for a new window or tab to open
+                WebDriverWait(driver, 10).until(lambda d: len(d.window_handles) > 1)
 
-            # Switch to the new window or tab
-            new_window = [window for window in driver.window_handles if window != driver.current_window_handle][0]
-            driver.switch_to.window(new_window)
-            # print("Switched to new window/tab.")
+                # Switch to the new window or tab
+                new_window = [window for window in driver.window_handles if window != driver.current_window_handle][0]
+                driver.switch_to.window(new_window)
 
-            # Wait for 5 seconds to view the new page
-            time.sleep(5)
-            # print("Viewed the new page for 5 seconds.")
+                # Wait for 5 seconds to view the new page
+                time.sleep(5)
 
-            # Close the new window/tab
-            driver.close()
-            # print("Closed the new window/tab.")
+                # Close the new window/tab
+                driver.close()
 
-            # Switch back to the original window
-            driver.switch_to.window(driver.window_handles[0])
-            # print("Switched back to the original window.")
-        
-        # Update the task counter
-        with counter_lock:
-            task_counter += 1
-            print(f"c: {task_counter}")
-        
-    except Exception as e:
-        print(f"Error during automation: {e}")
-    finally:
-        # Close the browser
-        driver.quit()
-        # print("Browser closed.")
+                # Switch back to the original window
+                driver.switch_to.window(driver.window_handles[0])
+            
+            # Update the task counter
+            with counter_lock:
+                task_counter += 1
+                print(f"{task_counter}")
+
+        except Exception as e:
+            if stop_flag.is_set():
+                break
+            print(f"Error during automation: {e}")
+            time.sleep(2)  # Wait before retrying
+
+        finally:
+            # Close the browser
+            try:
+                driver.quit()
+            except:
+                pass  # Ignore errors while closing the driver
 
 def start_threads(num_threads):
     with ThreadPoolExecutor(max_workers=num_threads) as executor:
         try:
-            while True:
-                futures = [executor.submit(automate_task) for _ in range(num_threads)]
-                for future in futures:
-                    future.result()
+            futures = [executor.submit(automate_task) for _ in range(num_threads)]
+            for future in futures:
+                future.result()
         except KeyboardInterrupt:
             print("Interrupted! Stopping all threads...")
 
+def monitor_stop_flag():
+    global stop_flag
+    while True:
+        user_input = input()
+        if user_input.lower() == 'q':
+            stop_flag.set()
+            print("Stopping all tasks...")
+            break
+
 if __name__ == "__main__":
-    number_of_threads = 16  # Set the number of threads you want to run
+    number_of_threads = 25  # Set the number of threads you want to run
+
+    # Start the monitor thread
+    stop_thread = threading.Thread(target=monitor_stop_flag)
+    stop_thread.start()
+
     try:
         start_threads(number_of_threads)
     except KeyboardInterrupt:
